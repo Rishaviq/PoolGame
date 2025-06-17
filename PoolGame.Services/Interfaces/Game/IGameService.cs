@@ -1,0 +1,20 @@
+﻿using PoolGame.Services.DTOs.Game.Request;
+using PoolGame.Services.DTOs.Game.Response;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PoolGame.Services.Interfaces.Game
+{
+    public interface IGameService
+    {
+        public Task<CreateGameResponse> CreateGame(CreateGameRequest createGameRequest);
+        public Task<GetGameResponse> GetGameById(int gameId);
+        public Task<GetGameResponse> GetGameByDate(DateTime gameDate);
+
+
+      
+    }
+}
