@@ -8,5 +8,6 @@ namespace PoolGame.Services.DTOs.User.Response
 {
     public class RegisterResponse :ResponseDTO
     {
+        public string? AwthToken { get; set; } = string.Empty;
     }
 }

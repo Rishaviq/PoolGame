@@ -9,5 +9,6 @@ namespace PoolGame.Services.DTOs.User.Responses
     public class LoginResponse : ResponseDTO
     {
         public int UserId { get; set; }
+        public string? AwthToken { get; set; } = string.Empty;
     }
 }
