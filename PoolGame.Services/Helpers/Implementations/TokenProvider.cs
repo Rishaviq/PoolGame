@@ -2,17 +2,23 @@
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Text;
 using System.Security.Claims;
-using PoolGameAPI.modules;
+using PoolGame.Models;
+using Microsoft.Extensions.Configuration;
+using PoolGame.Services.Helpers.Interfaces;
 
 namespace PoolGameAPI.Controllers
 {
-    public sealed class TokenProvider(IConfiguration configuration)
+    public sealed class TokenProvider : ITokenProvider
     {
-
-        public string Create(Users user)
+        public readonly IConfiguration _configuration;
+        public TokenProvider(IConfiguration configuration)
+        {
+            this._configuration = configuration;
+        }
+        public string CreateToken(User user)
         {
 
-            string secretKey = configuration["Jwt:Secret"];
+            string secretKey = _configuration["Jwt:Secret"];
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -21,7 +27,7 @@ namespace PoolGameAPI.Controllers
             {
                 Subject = new ClaimsIdentity(
                 [
-                    new Claim(JwtRegisteredClaimNames.Sub, user.username.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Username.ToString()),
 
 
 
@@ -29,8 +35,8 @@ namespace PoolGameAPI.Controllers
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(120),
                 SigningCredentials = credentials,
-                Issuer = configuration["Jwt:Issuer"],
-                Audience = configuration["Jwt:Audience"]
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
 
             };
 
