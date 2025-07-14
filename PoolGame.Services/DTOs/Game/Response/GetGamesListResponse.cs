@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace PoolGame.Services.DTOs.Game.Response
 {
-   public class GetGamesListReponse : ResponseDTO
+   public class GetGamesListResponse : ResponseDTO
     {
+        public List<GameDTO> Games { get; set; } = new List<GameDTO>();
     }
 }

@@ -11,7 +11,7 @@ namespace PoolGame.Services.Interfaces.PlayerStat
 {
     public interface IPlayerStatService
     {
-        public Task<GetGamesListReponse> GetGamesByUser(int userId);
+        public Task<GetMatchHistoryResponse> GetMatchHistoryOfUser(int userId);
         public Task<SaveStatsResponse> SaveStats(SaveStatsRequest saveStatsRequest);
 
         public Task<GetPersonalStatsResponse> GetPersonalStatsOfUser(int userId);

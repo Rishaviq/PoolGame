@@ -12,7 +12,7 @@ namespace PoolGame.Services.Interfaces.Game
     {
         public Task<CreateGameResponse> CreateGame(CreateGameRequest createGameRequest);
         public Task<GetGameResponse> GetGameById(int gameId);
-        public Task<GetGameResponse> GetGameByDate(DateTime gameDate);
+        public Task<GetGamesListResponse> GetGameByDate(DateTime gameDate);
 
 
       

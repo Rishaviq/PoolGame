@@ -8,5 +8,6 @@ namespace PoolGame.Services.DTOs.Game.Response
 {
    public class GetGameResponse : ResponseDTO
     {
+        public GameDTO? Game { get; set; }
     }
 }
