@@ -1,0 +1,6 @@
+@PoolGame.WebAPI_HostAddress = http://localhost:5082
+
+GET {{PoolGame.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

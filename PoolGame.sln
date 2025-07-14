@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolGame.Services", "PoolGame.Services\PoolGame.Services.csproj", "{DDFE8676-278B-486D-AA23-7F9633AD7E2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolGame.WebAPI", "PoolGame.WebAPI\PoolGame.WebAPI.csproj", "{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{DDFE8676-278B-486D-AA23-7F9633AD7E2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDFE8676-278B-486D-AA23-7F9633AD7E2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDFE8676-278B-486D-AA23-7F9633AD7E2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
