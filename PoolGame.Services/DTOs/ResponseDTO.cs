@@ -10,5 +10,16 @@ namespace PoolGame.Services.DTOs
     {
         public bool IsSuccesful { get; set; } = true;
         public string? Message { get; set; }
+
+        public ResponseDTO(string message)
+        {
+            IsSuccesful = false;
+            Message = message;
+        }
+        public ResponseDTO()
+        {
+            IsSuccesful = true;
+            Message = null;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using PoolGame.Repositories.Interfaces.Game;
 using PoolGame.Repositories.Interfaces.PlayerStat;
 using PoolGame.Repositories.Interfaces.User;
+using PoolGame.Services.DTOs;
 using PoolGame.Services.DTOs.Game;
 using PoolGame.Services.DTOs.Game.Response;
 using PoolGame.Services.DTOs.PlayerStat;
@@ -10,6 +11,7 @@ using PoolGame.Services.Helpers;
 using PoolGame.Services.Interfaces.PlayerStat;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -126,9 +128,27 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
 
 
-        public Task<SaveStatsResponse> SaveStats(SaveStatsRequest saveStatsRequest)
+        public async Task<SaveStatsResponse> SaveStats(SaveStatsRequest request)
         {
-            throw new NotImplementedException();
+            ResponseDTO validationResult = await ValidateStatRequest(request);
+            if (!validationResult.IsSuccesful)
+            {
+                return new SaveStatsResponse { IsSuccesful = validationResult.IsSuccesful, Message = validationResult.Message };
+            }
+            await _playerStatRepository.CreateAsync(new Models.PlayerStat
+            {
+                GameId = request.GameId,
+                UserId = request.UserId,
+                ShotsMade = request.ShotsMade,
+                ShotsAttempted = request.ShotsAttempted,
+                HandBalls = request.HandBalls,
+                Fouls = request.Fouls,
+                BestStreak = request.BestStreak,
+                IsWinner = request.IsWinner
+            });
+
+
+            return new SaveStatsResponse();//temp response until the method is implemented
         }
 
 
@@ -226,5 +246,35 @@ namespace PoolGame.Services.Implementations.PlayerStat
             return response;
         }
 
+
+
+        public async Task<ResponseDTO> ValidateStatRequest(SaveStatsRequest request)
+        {
+            if (request.ShotsMade > request.ShotsAttempted)
+            {
+                return new ResponseDTO("Player can't make more shots than attempted");
+            }
+
+            Models.Game game = await _gameRepository.RetrieveAsync(request.GameId);
+            if (game is null)
+            {
+                return new ResponseDTO("Game does not exist");
+            }
+            Models.User user = await _userRepository.RetrieveAsync(request.UserId);
+            if (user is null)
+            {
+                return new ResponseDTO("User does not exist");
+            }
+            await foreach (var stat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter { GameId = request.GameId }))
+            {
+                if (stat.UserId == request.UserId)
+                {
+                    return new ResponseDTO("Player stats for this game already exist");
+                }
+            }
+
+
+            return new ResponseDTO();
+        }
     }
 }
