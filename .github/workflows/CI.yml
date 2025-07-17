@@ -27,9 +27,7 @@ jobs:
       - name: Build project
         run: dotnet build PoolGame.WebAPI/PoolGame.WebAPI.csproj --configuration Release --no-restore
 
-      - name: Run tests (if any)
-        run: dotnet test PoolGame.WebAPI.Tests/PoolGame.WebAPI.Tests.csproj --no-build --verbosity normal
-        # Remove this step if you don’t have tests yet
+      
 
       - name: Build Docker image
         run: docker build -t poolgame-api:latest -f PoolGame.WebAPI/Dockerfile .
