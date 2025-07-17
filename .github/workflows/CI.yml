@@ -40,7 +40,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Tag Docker image
-        run: docker tag poolgame-api:latest Rishaviq/poolgame-api:latest
+        run: docker tag poolgame-api:latest rishaviq/poolgame-api:latest
 
       - name: Push Docker image
-        run: docker push Rishaviq/poolgame-api:latest
+        run: docker push rishaviq/poolgame-api:latest
