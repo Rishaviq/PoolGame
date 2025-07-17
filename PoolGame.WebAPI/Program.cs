@@ -44,6 +44,11 @@ namespace PoolGame.WebAPI
             builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 
 
+            if(builder.Environment.IsDevelopment())
+{
+                builder.Configuration.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
+            }
+
             builder.Services.AddAuthorization();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(o =>
@@ -61,7 +66,7 @@ namespace PoolGame.WebAPI
 
                 });
 
-
+           
 
 
 
@@ -73,6 +78,8 @@ namespace PoolGame.WebAPI
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
