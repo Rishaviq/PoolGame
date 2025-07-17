@@ -43,4 +43,4 @@ jobs:
         run: docker tag poolgame-api:latest your-dockerhub-username/poolgame-api:latest
 
       - name: Push Docker image
-        run: docker push your-dockerhub-username/poolgame-api:latest
+        run: docker push rishaviq/poolgame-api:latest
