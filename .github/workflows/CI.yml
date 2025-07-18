@@ -61,4 +61,4 @@ jobs:
               -e JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
               -e JWT_EXPIRATION_MINUTES="${{ secrets.JWT_EXPIRATIONINMINUTES }}" \
               -e SQL_CONNECTION="${{ secrets.SQL_CONNECTION }}" \
-              your-dockerhub-username/poolgame-api:latest
+              rishaviq/poolgame-api:latest
