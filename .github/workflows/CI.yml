@@ -57,9 +57,9 @@ jobs:
             docker stop poolgame-api || true
             docker rm poolgame-api || true
             docker run -d --name poolgame-api -p 5002:8080 \
-              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e JWT_ISSUER="${{ secrets.JWT_ISSUER }}" \
-              -e JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
-              -e JWT_EXPIRATION_MINUTES="${{ secrets.JWT_EXPIRATIONINMINUTES }}" \
-              -e SQL_CONNECTION="${{ secrets.SQL_CONNECTION }}" \
+              -e JWT__SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT__ISSUER="${{ secrets.JWT_ISSUER }}" \
+              -e JWT__AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
+              -e JWT__EXPIRATIONINMINUTES="${{ secrets.JWT_EXPIRATIONINMINUTES }}" \
+              -e SQL__CONNECTION="${{ secrets.SQL_CONNECTION }}" \
               rishaviq/poolgame-api:latest
