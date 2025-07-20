@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PoolGameAPI.Controllers;
+using PoolGame.WebAPI.Middlewares;
 
 namespace PoolGame.WebAPI
 {
@@ -92,6 +93,7 @@ namespace PoolGame.WebAPI
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             app.MapControllers();
 
