@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PoolGame.Services.DTOs.User.Request;
 using PoolGame.Services.DTOs.User.Requests;
 using PoolGame.Services.DTOs.User.Response;
 using PoolGame.Services.DTOs.User.Responses;

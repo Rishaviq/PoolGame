@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PoolGameAPI.Controllers;
 using PoolGame.WebAPI.Middlewares;
+using PoolGame.Repositories;
 
 namespace PoolGame.WebAPI
 {
@@ -67,7 +68,7 @@ namespace PoolGame.WebAPI
 
                 });
 
-           
+            ConnectionFactory.Initialize(builder.Configuration["SQL:connection"]);
 
 
 

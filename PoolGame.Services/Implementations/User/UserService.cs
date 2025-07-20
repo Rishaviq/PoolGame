@@ -1,7 +1,6 @@
 ﻿using PoolGame.Models;
 using PoolGame.Repositories.Interfaces.User;
 using PoolGame.Services.DTOs.User;
-using PoolGame.Services.DTOs.User.Request;
 using PoolGame.Services.DTOs.User.Requests;
 using PoolGame.Services.DTOs.User.Response;
 using PoolGame.Services.DTOs.User.Responses;

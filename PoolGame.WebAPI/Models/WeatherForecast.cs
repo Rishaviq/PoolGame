@@ -1,4 +1,4 @@
-namespace PoolGame.WebAPI
+namespace PoolGame.WebAPI.Models
 {
     public class WeatherForecast
     {

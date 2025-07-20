@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace PoolGame.Services.DTOs.User.Requests
+namespace PoolGame.WebAPI.Models.LogIn.Requests
 {
-    public class RegisterRequest
+    public class RegisterRequestDTO
     {
         [Required]
         [StringLength(50, ErrorMessage = "User name cannot be longer than 50 characters.")]

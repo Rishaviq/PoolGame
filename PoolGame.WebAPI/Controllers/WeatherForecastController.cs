@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using PoolGame.WebAPI.Models;
 
 namespace PoolGame.WebAPI.Controllers
 {
