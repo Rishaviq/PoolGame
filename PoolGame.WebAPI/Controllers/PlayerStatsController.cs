@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
 using PoolGame.Services.DTOs.PlayerStat.Response;
 using PoolGame.Services.Interfaces.PlayerStat;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace PoolGame.WebAPI.Controllers
 
         // GET /player/{id}/stats
         [HttpGet("{id}/stats")]
-        public async Task<IActionResult> GetStatsOfPlayer(int id)
+        public async Task<ActionResult<GetPersonalStatsResponse>> GetStatsOfPlayer(int id)
         {
             GetPersonalStatsResponse response = await _playerStatService.GetPersonalStatsOfUser(id);
             if (response.IsSuccesful)
@@ -34,9 +35,17 @@ namespace PoolGame.WebAPI.Controllers
 
         // GET /player/{id}/history
         [HttpGet("{id}/history")]
-        public Task GetMatchHistory(int id)
+        public async Task<ActionResult<GetMatchHistoryResponse>> GetMatchHistory(int id)
         {
-            throw new NotImplementedException("This method is not implemented yet.");
+           var response = await _playerStatService.GetMatchHistoryOfUser(id);
+            if (response.IsSuccesful)
+            {
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest(new { message = response.Message });
+            }
         }
     }
 }

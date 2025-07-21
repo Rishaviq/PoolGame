@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoolGame.Services.DTOs.PlayerStat.Response
 {
-    public class GetMatchHistoryResponse
+    public class GetMatchHistoryResponse : ResponseDTO
     {
         public List<PlayerGameDTO> PlayerGames { get; set; } = new List<PlayerGameDTO>();
     }

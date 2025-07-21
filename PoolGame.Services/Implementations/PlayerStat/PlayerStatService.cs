@@ -35,6 +35,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
         public async Task<GetMatchHistoryResponse> GetMatchHistoryOfUser(int userId)
         {
+            //really have to fix this. I dont validate the database data at all.
+
             PlayerStatFilter filter = new PlayerStatFilter
             {
                 UserId = userId
@@ -222,8 +224,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 statCounter.TotalFouls += stat.Fouls;
                 statCounter.TotalGamesPlayed++;
             }
-            
-            
+
+
 
             if (response.TotalGamesWon is null)
             {
@@ -240,7 +242,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
             else { response.PlayerWinRate = 0; }
             if (response.AverageHandBalls is null)
             {
-                response.AverageHandBalls =statCounter.TotalGamesPlayed>0 ? statCounter.TotalHandBalls / statCounter.TotalGamesPlayed : 0;
+                response.AverageHandBalls = statCounter.TotalGamesPlayed > 0 ? statCounter.TotalHandBalls / statCounter.TotalGamesPlayed : 0;
             }
             if (response.AverageFouls is null)
             {

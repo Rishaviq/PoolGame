@@ -20,7 +20,7 @@ namespace PoolGame.WebAPI.Middlewares
                 await _next(context);
             }
             catch (UserValidationException ex) {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.Message);
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
 
