@@ -7,6 +7,7 @@ using PoolGame.Services.DTOs.Game.Response;
 using PoolGame.Services.DTOs.PlayerStat;
 using PoolGame.Services.DTOs.PlayerStat.Request;
 using PoolGame.Services.DTOs.PlayerStat.Response;
+using PoolGame.Services.Exceptions;
 using PoolGame.Services.Helpers;
 using PoolGame.Services.Interfaces.PlayerStat;
 using System;
@@ -168,6 +169,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
                     statCounter.BestStreak = stat.BestStreak;
                 }
             }
+            if (statCounter.TotalGamesPlayed <= 0) { throw new UserValidationException("Player Has no games Played"); }
+
             if (response.TotalGamesPlayed is null)
             {
                 response.TotalGamesPlayed = statCounter.TotalGamesPlayed;
@@ -219,6 +222,9 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 statCounter.TotalFouls += stat.Fouls;
                 statCounter.TotalGamesPlayed++;
             }
+            
+            
+
             if (response.TotalGamesWon is null)
             {
                 response.TotalGamesWon = statCounter.TotalGamesWon;
@@ -234,11 +240,11 @@ namespace PoolGame.Services.Implementations.PlayerStat
             else { response.PlayerWinRate = 0; }
             if (response.AverageHandBalls is null)
             {
-                response.AverageHandBalls = statCounter.TotalHandBalls / statCounter.TotalGamesPlayed;
+                response.AverageHandBalls =statCounter.TotalGamesPlayed>0 ? statCounter.TotalHandBalls / statCounter.TotalGamesPlayed : 0;
             }
             if (response.AverageFouls is null)
             {
-                response.AverageFouls = statCounter.TotalFouls / statCounter.TotalGamesPlayed;
+                response.AverageFouls = statCounter.TotalGamesPlayed > 0 ? statCounter.TotalFouls / statCounter.TotalGamesPlayed : 0;
             }
 
 

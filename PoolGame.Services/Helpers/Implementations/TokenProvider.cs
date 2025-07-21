@@ -28,6 +28,7 @@ namespace PoolGameAPI.Controllers
                 Subject = new ClaimsIdentity(
                 [
                     new Claim(JwtRegisteredClaimNames.Sub, user.Username.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
 
 
 
