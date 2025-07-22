@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace PoolGame.WebAPI.Controllers
 {
-    [Route("api/v2")]
+
     [ApiController]
     public class LogInController : ControllerBase
     {
@@ -24,7 +24,6 @@ namespace PoolGame.WebAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> LogIn([FromBody] LoginRequestDTO request)
         {
-      
             LoginResponse loginResponse = await _userService.Login(new Services.DTOs.User.Requests.LoginRequest
             {
                 Username = request.Username,
