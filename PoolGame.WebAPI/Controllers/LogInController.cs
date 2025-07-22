@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using PoolGame.Services.DTOs.User.Requests;
 using PoolGame.Services.DTOs.User.Response;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace PoolGame.WebAPI.Controllers
 {
-
+    
     [ApiController]
     public class LogInController : ControllerBase
     {
@@ -20,7 +21,7 @@ namespace PoolGame.WebAPI.Controllers
         {
             _userService = userService;
         }
-        [Route("LogIn")]
+        [Route("log-in")]
         [HttpPost]
         public async Task<IActionResult> LogIn([FromBody] LoginRequestDTO request)
         {
@@ -36,7 +37,7 @@ namespace PoolGame.WebAPI.Controllers
             else { return Unauthorized(new { message = loginResponse.Message }); }
 
         }
-        [Route("Register")]
+        [Route("register")]
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO request)
         {

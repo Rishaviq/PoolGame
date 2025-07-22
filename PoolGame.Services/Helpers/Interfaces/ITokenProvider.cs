@@ -11,5 +11,6 @@ namespace PoolGame.Services.Helpers.Interfaces
     {
         public string getUsernameFromToken(string token);
         public string CreateToken(User user);
+        public int getUserIdFromToken(string token);
     }
 }

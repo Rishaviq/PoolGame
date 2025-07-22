@@ -10,7 +10,7 @@ namespace PoolGame.Services.Interfaces.Game
 {
     public interface IGameService
     {
-        public Task<CreateGameResponse> CreateGame(CreateGameRequest createGameRequest);
+        public Task<CreateGameResponse> CreateGame();
         public Task<GetGameResponse> GetGameById(int gameId);
         public Task<GetGamesListResponse> GetGameByDate(DateTime gameDate);
 

@@ -18,9 +18,15 @@ namespace PoolGame.Services.Implementations.Game
         {
             _gameRepository = gameRepository;
         }
-        public Task<CreateGameResponse> CreateGame(CreateGameRequest createGameRequest)
+        public async Task<CreateGameResponse> CreateGame()
         {
-            throw new NotImplementedException();
+            CreateGameResponse response = new CreateGameResponse();
+            response.GameId= await _gameRepository.CreateAsync(new Models.Game
+            {
+                GameDate = DateTime.Now,
+                GameIsDraw = true // Default value, can be changed later based on game logic
+            });
+            return response;
         }
 
         public async Task<GetGamesListResponse> GetGameByDate(DateTime gameDate)
@@ -28,7 +34,7 @@ namespace PoolGame.Services.Implementations.Game
             GetGamesListResponse response = new GetGamesListResponse();
             GameFilter filter = new GameFilter
             {
-                GameDate = gameDate
+                GameDate = gameDate.Date
             };
             await foreach (var game in _gameRepository.RetrieveCollectionAsync(filter))
             {

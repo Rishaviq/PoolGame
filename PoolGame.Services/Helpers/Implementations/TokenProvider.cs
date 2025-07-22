@@ -47,16 +47,30 @@ namespace PoolGameAPI.Controllers
             return token;
         }
 
-     public string getUsernameFromToken(string token) {
-            token=token.Substring("Bearer ".Length);
+        public string getUsernameFromToken(string token)
+        {
+            token = token.Substring("Bearer ".Length);
             var handler = new JsonWebTokenHandler();
-            var jwtToken= handler.ReadJsonWebToken(token);
+            var jwtToken = handler.ReadJsonWebToken(token);
 
-            var usernameClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier || claim.Type == "sub");
-        
-        return usernameClaim.Value;
+            var usernameClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "sub");
+
+            return usernameClaim.Value;
         }
+        public int getUserIdFromToken(string token)
+        {
+            token = token.Substring("Bearer ".Length);
+            var handler = new JsonWebTokenHandler();
+            var jwtToken = handler.ReadJsonWebToken(token);
 
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier);
+
+            if (idClaim != null && int.TryParse(idClaim.Value, out int userId))
+            {
+                return userId;
+            }
+            throw new Exception("There is no userId in the claim");
+        }
 
     }
 }

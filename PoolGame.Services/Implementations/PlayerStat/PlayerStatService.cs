@@ -149,7 +149,10 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 BestStreak = request.BestStreak,
                 IsWinner = request.IsWinner
             });
-
+            if (request.IsWinner)
+            {
+                await _gameRepository.UpdateAsync(request.GameId, new GameUpdate { GameIsDraw = false });
+            }
 
             return new SaveStatsResponse();//temp response until the method is implemented
         }
