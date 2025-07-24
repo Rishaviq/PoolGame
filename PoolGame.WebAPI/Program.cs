@@ -70,6 +70,15 @@ namespace PoolGame.WebAPI
 
             ConnectionFactory.Initialize(builder.Configuration["SQL:connection"]);
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
 
 
             // Add services to the container.
@@ -89,7 +98,7 @@ namespace PoolGame.WebAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
