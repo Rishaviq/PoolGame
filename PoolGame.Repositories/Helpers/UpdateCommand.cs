@@ -22,7 +22,7 @@ namespace PoolGame.Repositories.Helpers
             idColumnValue = _idColumnValue;
             setClauses = new List<string>();
             command = connection.CreateCommand();
-            command.CommandText = $"UPDATE {tableName} SET ";
+            command.CommandText = $"UPDATE {tableName} ";
         }
 
         public void AddSetClause(string dbFieldName, INullable? dbFieldValue)
@@ -48,7 +48,7 @@ WHERE {idColumnName} = @{idColumnName}";
             command.Parameters.AddWithValue($"@{idColumnName}", idColumnValue);
 
             SqlTransaction transaction = command.Connection.BeginTransaction();
-
+            command.Transaction = transaction;
             // Execute the update command and return the number of affected rows
             int rowsAffected = await command.ExecuteNonQueryAsync();
 

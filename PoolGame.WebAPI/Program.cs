@@ -19,6 +19,7 @@ using System.Text;
 using PoolGameAPI.Controllers;
 using PoolGame.WebAPI.Middlewares;
 using PoolGame.Repositories;
+using PoolGame.WebAPI.Helpers;
 
 namespace PoolGame.WebAPI
 {
@@ -86,7 +87,8 @@ namespace PoolGame.WebAPI
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSwaggerGenWithAuth();
 
             var app = builder.Build();
 
@@ -97,6 +99,7 @@ namespace PoolGame.WebAPI
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+               
             }
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();

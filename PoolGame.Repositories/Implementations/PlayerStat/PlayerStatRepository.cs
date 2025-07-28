@@ -12,7 +12,7 @@ namespace PoolGame.Repositories.Implementations.PlayerStat
 {
     public class PlayerStatRepository : BaseRepository<Models.PlayerStat>, IPlayerStatRepository
     {
-        private const string IdDbFieldEnumeratorName = "PlayerStatId";
+        private const string IdDbFieldEnumeratorName = "StatId";
         public Task<int> CreateAsync(Models.PlayerStat entity)
         {
             return base.CreateAsync(entity, IdDbFieldEnumeratorName);

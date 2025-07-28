@@ -49,7 +49,7 @@ namespace PoolGame.Repositories.Implementations.Game
 
             UpdateCommand updateCommand = new UpdateCommand(
                 connection,
-                "Users",
+                "Games",
                 IdDbFieldEnumeratorName, objectId);
 
             updateCommand.AddSetClause("GameDate", update.GameDate);
