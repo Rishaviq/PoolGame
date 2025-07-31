@@ -10,7 +10,7 @@ namespace PoolGame.Services.DTOs.PlayerStat.Response
     public class GetPlayerGameStatsResponse : ResponseDTO
     {
         public List<PlayerStatDTO> PlayerStats { get; set; } = new List<PlayerStatDTO>();
-        public GameDTO gameInfo = new GameDTO();
+        public GameDTO GameInfo { get; set; } = new GameDTO();
 
     }
 }

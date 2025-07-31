@@ -57,9 +57,9 @@ namespace PoolGame.WebAPI.Controllers
 
         // GET /player/{id}/history
         [HttpGet("game-stats/{gameId}")]
-        public async Task<ActionResult<GetPlayerGameStatsResponse>> GetStatsForGame(int gameid)
+        public async Task<ActionResult<GetPlayerGameStatsResponse>> GetStatsForGame(int gameId)
         {
-            var response = await _playerStatService.GetPlayerStatsForGame(gameid);
+            var response = await _playerStatService.GetPlayerStatsForGame(gameId);
             if (response.IsSuccesful)
             {
                 return Ok(response);

@@ -95,7 +95,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
             var game = await _gameRepository.RetrieveAsync(gameId);
 
-            response.gameInfo = new GameDTO
+            response.GameInfo = new GameDTO
             {
                 GameId = game.GameId,
                 GameDate = game.GameDate,
