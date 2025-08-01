@@ -287,5 +287,45 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
             return new ResponseDTO();
         }
+
+        public async Task<GetLeaderboardResponse> GetLeaderBoard()
+        {
+            HashSet<int> drawGamesId = new HashSet<int>();
+            await foreach (var game in _gameRepository.RetrieveCollectionAsync(new GameFilter { GameIsDraw = true }))
+            {
+                drawGamesId.Add(game.GameId);
+            }
+
+            Dictionary<int, LeaderBoardEntryDTO> stats = new Dictionary<int, LeaderBoardEntryDTO>();
+            await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter()))
+            {
+                stats.TryAdd(playerStat.UserId, new LeaderBoardEntryDTO());
+                stats[playerStat.UserId].TotalGames++;
+
+                if (!drawGamesId.Contains(playerStat.GameId))
+                {
+                    //checking if the game is draw and saving the result
+                    if (playerStat.IsWinner)
+                    {
+                        stats[playerStat.UserId].GamesWon++;
+                    }
+                    else { stats[playerStat.UserId].GamesLost++; }
+                }
+
+            }
+            GetLeaderboardResponse response = new GetLeaderboardResponse();
+            foreach (var stat in stats)
+            {
+                if (stat.Value.GamesWon + stat.Value.GamesLost > 0)
+                {
+                    stat.Value.UserId = stat.Key;
+                    stat.Value.WinRate = (decimal)stat.Value.GamesWon / (stat.Value.GamesWon + stat.Value.GamesLost) * 100;
+                    stat.Value.UserName = _userRepository.RetrieveAsync(stat.Value.UserId).Result.Username;
+                    response.LeaderboardEntries.Add(stat.Value);
+                }
+            }
+            response.LeaderboardEntries = response.LeaderboardEntries.OrderByDescending(entry => entry.WinRate).ThenByDescending(entry => entry.TotalGames).ToList();
+            return response;
+        }
     }
 }

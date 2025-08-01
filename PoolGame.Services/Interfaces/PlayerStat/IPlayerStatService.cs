@@ -17,5 +17,7 @@ namespace PoolGame.Services.Interfaces.PlayerStat
         public Task<GetPersonalStatsResponse> GetPersonalStatsOfUser(int userId);
 
         public Task<GetPlayerGameStatsResponse> GetPlayerStatsForGame(int gameId);
+
+        public Task<GetLeaderboardResponse> GetLeaderBoard();
     }
 }

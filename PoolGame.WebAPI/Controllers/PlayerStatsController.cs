@@ -87,7 +87,20 @@ namespace PoolGame.WebAPI.Controllers
                 return BadRequest(new { message = response.Message });
             }
         }
-
+        // GET /player/leaderboard
+        [HttpGet("leaderboard")]
+        public async Task<ActionResult<GetLeaderboardResponse>> GetLeaderBoard()
+        {
+            var response = await _playerStatService.GetLeaderBoard();
+            if (response.IsSuccesful)
+            {
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest(new { message = response.Message });
+            }
+        }
 
     }
 }
