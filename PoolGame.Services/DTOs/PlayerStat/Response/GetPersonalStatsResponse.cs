@@ -8,6 +8,7 @@ namespace PoolGame.Services.DTOs.PlayerStat.Response
 {
     public class GetPersonalStatsResponse : ResponseDTO
     {
+        public string? ProfileName { get; set; }
         public decimal? PlayerWinRate { get; set; }
         public int? TotalGamesPlayed { get; set; }
         public int? TotalGamesWon { get; set; }

@@ -81,7 +81,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
             playerStats = playerStats.Where(x => !DrawnGamesList.Contains(x.GameId)).ToList();
             response = FillOutcomeDependantStats(response, playerStats);
-
+            var playerInfo = await _userRepository.RetrieveAsync(userId);
+            response.ProfileName = playerInfo.ProfileName;
             return response;
         }
 
