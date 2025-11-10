@@ -10,5 +10,6 @@ namespace PoolGame.Services.DTOs.User.Responses
     {
         public int UserId { get; set; }
         public string? AuthToken { get; set; } = string.Empty;
+        public string? ProfileName { get; set; } = string.Empty;
     }
 }

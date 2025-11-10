@@ -20,6 +20,7 @@ namespace PoolGame.Services.Hubs.Implementations
             _connectionPages[Context.ConnectionId] = new ConnInfo { PlayerId = request.UserId.ToString(), GroupName = groupName };
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
             await Clients.OthersInGroup(groupName).SendAsync("AddPlayer", request);
+            await Clients.OthersInGroup(groupName).SendAsync("SendUpdate");
 
         }
 

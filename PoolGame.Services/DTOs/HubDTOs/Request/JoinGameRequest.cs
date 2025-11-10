@@ -16,8 +16,8 @@ namespace PoolGame.Services.DTOs.HubDTOs.Request
         [Required]
         public int UserId { get; set; }
 
-        [Required]
-        public string ProfileName { get; set; }
+
+        public string? ProfileName { get; set; }
 
 
        

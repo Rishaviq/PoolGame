@@ -67,7 +67,8 @@ namespace PoolGame.Services.Implementations.User
                     {
                         IsSuccesful = true,
                         UserId = user.UserId,
-                        AuthToken = _tokenProvider.CreateToken(user)
+                        AuthToken = _tokenProvider.CreateToken(user),
+                        ProfileName = user.ProfileName ?? string.Empty
                     };
                 }
                 return new LoginResponse

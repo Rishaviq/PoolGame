@@ -17,4 +17,8 @@
     <ProjectReference Include="..\PoolGame.Repositories\PoolGame.Repositories.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\HubDTOs\Response\" />
+  </ItemGroup>
+
 </Project>
