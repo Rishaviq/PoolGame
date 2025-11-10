@@ -13,6 +13,7 @@ using PoolGame.Services.Implementations.PlayerStat;
 using PoolGame.Services.Implementations.User;
 using PoolGame.Services.Helpers.Interfaces;
 using PoolGame.Services.Helpers.Implementations;
+using PoolGame.Services.Hubs.Implementations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -40,6 +41,7 @@ namespace PoolGame.WebAPI
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IPlayerStatService, PlayerStatService>();
             builder.Services.AddScoped<IGameService, GameService>();
+           
 
 
             //adding helpers
@@ -82,6 +84,8 @@ namespace PoolGame.WebAPI
             });
 
 
+            builder.Services.AddSignalR();
+
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -105,6 +109,7 @@ namespace PoolGame.WebAPI
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapHub<LiveGameHub>("LiveGame");
 
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 

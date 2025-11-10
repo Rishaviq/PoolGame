@@ -321,7 +321,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 {
                     stat.Value.UserId = stat.Key;
                     stat.Value.WinRate = (decimal)stat.Value.GamesWon / (stat.Value.GamesWon + stat.Value.GamesLost) * 100;
-                    stat.Value.UserName = _userRepository.RetrieveAsync(stat.Value.UserId).Result.Username;
+                    stat.Value.UserName = _userRepository.RetrieveAsync(stat.Value.UserId).Result.ProfileName; //username/prodile name mixup becouse i dont want to change it everywhere
                     response.LeaderboardEntries.Add(stat.Value);
                 }
             }
