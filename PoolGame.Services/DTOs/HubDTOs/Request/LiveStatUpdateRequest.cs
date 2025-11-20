@@ -12,6 +12,7 @@ namespace PoolGame.Services.DTOs.HubDTOs.Request
 
         [Required]
         public int UserId { get; set; }
+        public string? ProfileName { get; set; }
 
 
         [Range(0, 15, ErrorMessage = "Player cant make more shots than available balls")]

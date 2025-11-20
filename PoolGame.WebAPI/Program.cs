@@ -77,9 +77,10 @@ namespace PoolGame.WebAPI
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
+                    policy.WithOrigins("http://localhost:5173", "https://poolgameapi.space")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
                 });
             });
 
@@ -109,7 +110,8 @@ namespace PoolGame.WebAPI
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapHub<LiveGameHub>("LiveGame");
+            app.MapHub<LiveGameHub>("/LiveGame");
+            app.UseDeveloperExceptionPage();
 
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
