@@ -77,7 +77,7 @@ namespace PoolGame.WebAPI
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "https://poolgameapi.space")
+                    policy.WithOrigins("http://localhost:5173", "https://poolgameapi.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
