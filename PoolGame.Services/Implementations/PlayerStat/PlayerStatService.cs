@@ -1,4 +1,5 @@
-﻿using PoolGame.Repositories.Interfaces.Game;
+﻿using PoolGame.Models;
+using PoolGame.Repositories.Interfaces.Game;
 using PoolGame.Repositories.Interfaces.PlayerStat;
 using PoolGame.Repositories.Interfaces.User;
 using PoolGame.Services.DTOs;
@@ -10,6 +11,7 @@ using PoolGame.Services.DTOs.PlayerStat.Response;
 using PoolGame.Services.Exceptions;
 using PoolGame.Services.Helpers;
 using PoolGame.Services.Interfaces.PlayerStat;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -36,7 +38,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
         public async Task<GetMatchHistoryResponse> GetMatchHistoryOfUser(int userId)
         {
             //really have to fix this. I dont validate the database data at all.
-
+            Log.Information("Someone wanted to see the match history of {userId}", userId);
             PlayerStatFilter filter = new PlayerStatFilter
             {
                 UserId = userId
@@ -65,6 +67,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
         public async Task<GetPersonalStatsResponse> GetPersonalStatsOfUser(int userId)
         {
+            Log.Information("Someone is stalking the profile of {userId}", userId);
+
             List<Models.PlayerStat> playerStats = new List<Models.PlayerStat>();
             await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter { UserId = userId }))
             {
@@ -92,6 +96,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
         public async Task<GetPlayerGameStatsResponse> GetPlayerStatsForGame(int gameId)
         {
+            Log.Information("Someone is trying to get the information of a played game with id:{gameId}", gameId);
+
             GetPlayerGameStatsResponse response = new GetPlayerGameStatsResponse();
 
             var game = await _gameRepository.RetrieveAsync(gameId);
@@ -122,6 +128,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
             }
             if (response.PlayerStats.Count < 1)
             {
+                Log.Warning("Someone tried to see a game that was never played. There are no recorded stats for this game. Game id in question:{gameId}", gameId);
                 response.IsSuccesful = false;
                 response.Message = "No player stats found for this game.";
             }
@@ -137,8 +144,11 @@ namespace PoolGame.Services.Implementations.PlayerStat
             ResponseDTO validationResult = await ValidateStatRequest(request);
             if (!validationResult.IsSuccesful)
             {
+                Log.Warning("{userId} failed to save their stats for a game with id:{gameId}. The error was:{validationError}",request.UserId,request.GameId,validationResult.Message);
                 return new SaveStatsResponse { IsSuccesful = validationResult.IsSuccesful, Message = validationResult.Message };
             }
+
+
             await _playerStatRepository.CreateAsync(new Models.PlayerStat
             {
                 GameId = request.GameId,
@@ -150,12 +160,15 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 BestStreak = request.BestStreak,
                 IsWinner = request.IsWinner
             });
+
+            Log.Information("{userId} saved their stats for a game with id:{gameId}, IsWinner{isWinner}, ", request.UserId, request.GameId, request.IsWinner);
             if (request.IsWinner)
             {
+                
                 await _gameRepository.UpdateAsync(request.GameId, new GameUpdate { GameIsDraw = false });
             }
 
-            return new SaveStatsResponse();//temp response until the method is implemented
+            return new SaveStatsResponse();
         }
 
 
@@ -291,6 +304,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
         public async Task<GetLeaderboardResponse> GetLeaderBoard()
         {
+            Log.Information("Someone wanted to see the leaderboard and use the most expensive function in the code");
             HashSet<int> drawGamesId = new HashSet<int>();
             await foreach (var game in _gameRepository.RetrieveCollectionAsync(new GameFilter { GameIsDraw = true }))
             {

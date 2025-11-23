@@ -21,6 +21,7 @@ using PoolGameAPI.Controllers;
 using PoolGame.WebAPI.Middlewares;
 using PoolGame.Repositories;
 using PoolGame.WebAPI.Helpers;
+using PoolGame.WebAPI.Services;
 
 namespace PoolGame.WebAPI
 {
@@ -41,7 +42,7 @@ namespace PoolGame.WebAPI
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IPlayerStatService, PlayerStatService>();
             builder.Services.AddScoped<IGameService, GameService>();
-           
+
 
 
             //adding helpers
@@ -49,8 +50,8 @@ namespace PoolGame.WebAPI
             builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 
 
-            if(builder.Environment.IsDevelopment())
-{
+            if (builder.Environment.IsDevelopment())
+            {
                 builder.Configuration.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
             }
 
@@ -73,6 +74,8 @@ namespace PoolGame.WebAPI
 
             ConnectionFactory.Initialize(builder.Configuration["SQL:connection"]);
 
+            builder.Host.SerilogConfiguration();
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -87,25 +90,27 @@ namespace PoolGame.WebAPI
 
             builder.Services.AddSignalR();
 
-            // Add services to the container.
+
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddSwaggerGenWithAuth();
 
             var app = builder.Build();
 
-            
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-               
+
             }
+            app.UseMiddleware<LoggingMiddleware>();
+
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseAuthentication();
@@ -114,6 +119,7 @@ namespace PoolGame.WebAPI
             app.UseDeveloperExceptionPage();
 
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+            
 
             app.MapControllers();
 

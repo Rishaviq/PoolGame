@@ -1,4 +1,5 @@
 ﻿using PoolGame.Services.Exceptions;
+using Serilog;
 using System.Net;
 using System.Text.Json;
 
@@ -20,7 +21,7 @@ namespace PoolGame.WebAPI.Middlewares
                 await _next(context);
             }
             catch (UserValidationException ex) {
-                Console.WriteLine(ex.Message);
+                Log.Error(ex,"An error with the user:");
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
 
@@ -36,7 +37,7 @@ namespace PoolGame.WebAPI.Middlewares
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Log.Error(ex, "An error cought in the middleware:");
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
         }

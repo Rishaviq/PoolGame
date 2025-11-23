@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
+using Microsoft.AspNetCore.Http;
 
 namespace PoolGame.Services.Implementations.User
 {
@@ -31,6 +33,9 @@ namespace PoolGame.Services.Implementations.User
         {
             try
             {
+                Log.Information("Someone tried to get information of user {userId}",userId);
+
+
                 Models.User user = await _userRepository.RetrieveAsync(userId);
                 return new GetUserResponse
                 {
@@ -58,11 +63,12 @@ namespace PoolGame.Services.Implementations.User
         {
             try
             {
-
+               
 
                 Models.User user = await FindUserByName(loginRequest.Username);
                 if (_passwordHasher.Verify(loginRequest.Password, user.UserPassword))
                 {
+                    Log.Information("Someone logged into user: {userName}",user.Username);
                     return new LoginResponse
                     {
                         IsSuccesful = true,
@@ -71,6 +77,7 @@ namespace PoolGame.Services.Implementations.User
                         ProfileName = user.ProfileName ?? string.Empty
                     };
                 }
+                Log.Warning("Someone tried to get into an account \"{userName}\" and failed",loginRequest.Username);
                 return new LoginResponse
                 {
                     IsSuccesful = false,
@@ -109,11 +116,13 @@ namespace PoolGame.Services.Implementations.User
                     ProfileName = request.ProfileName,
                     UserPassword = _passwordHasher.Hash(request.UserPassword)
                 });
+                Log.Information("Someone made a new registration: {userName}", request.Username);
                 return new RegisterResponse();
                 
             }
             else
             {
+                Log.Information($"Someone failed to create a registration");
                 return new RegisterResponse
                 {
                     IsSuccesful = false,

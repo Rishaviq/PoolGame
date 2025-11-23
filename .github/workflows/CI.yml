@@ -57,6 +57,7 @@ jobs:
             docker stop poolgame-api || true
             docker rm poolgame-api || true
             docker run -d --name poolgame-api -p 5002:8080 \
+            -v ~/apiLogs:/app/logs \
               -e JWT__SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT__ISSUER="${{ secrets.JWT_ISSUER }}" \
               -e JWT__AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \

@@ -25,7 +25,7 @@ namespace PoolGame.WebAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> LogIn([FromBody] LoginRequestDTO request)
         {
-            LoginResponse loginResponse = await _userService.Login(new Services.DTOs.User.Requests.LoginRequest
+            LoginResponse loginResponse = await _userService.Login(new PoolGame.Services.DTOs.User.Requests.LoginRequest
             {
                 Username = request.Username,
                 Password = request.Password
@@ -43,7 +43,7 @@ namespace PoolGame.WebAPI.Controllers
         {
             if (ModelState.IsValid)
             {
-                Services.DTOs.User.Requests.RegisterRequest InternalRegisterRequest = new Services.DTOs.User.Requests.RegisterRequest
+                PoolGame.Services.DTOs.User.Requests.RegisterRequest InternalRegisterRequest = new PoolGame.Services.DTOs.User.Requests.RegisterRequest
                 {
                     Username = request.Username,
                     UserPassword = request.UserPassword,
