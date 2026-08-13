@@ -21,6 +21,7 @@ using PoolGameAPI.Controllers;
 using PoolGame.WebAPI.Middlewares;
 using PoolGame.Repositories;
 using PoolGame.WebAPI.Helpers;
+using PoolGame.EFCore.DatabaseContext;
 
 namespace PoolGame.WebAPI
 {
@@ -35,6 +36,7 @@ namespace PoolGame.WebAPI
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IPlayerStatRepository, PlayerStatRepository>();
             builder.Services.AddScoped<IGameRepository, GameRepository>();
+            builder.Services.AddDbContext<DataBaseContext>();
 
 
             //adding services

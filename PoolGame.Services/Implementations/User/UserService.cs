@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PoolGame.EFCore.DatabaseContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace PoolGame.Services.Implementations.User
 {
@@ -21,11 +23,13 @@ namespace PoolGame.Services.Implementations.User
         private readonly IPasswordHasher _passwordHasher;
         private readonly IUserRepository _userRepository;
         private readonly ITokenProvider _tokenProvider;
-        public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ITokenProvider tokenProvider)
+        private readonly DataBaseContext _dataBaseContext;
+        public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ITokenProvider tokenProvider, DataBaseContext dataBaseContext)
         {
             _tokenProvider = tokenProvider;
             _passwordHasher = passwordHasher;
             _userRepository = userRepository;
+            _dataBaseContext = dataBaseContext;
         }
         public async Task<GetUserResponse> GetUser(int userId)
         {
@@ -103,12 +107,12 @@ namespace PoolGame.Services.Implementations.User
             Validation validations = await RegisterValidaton(request);
             if (validations.IsValid)
             {
-                await _userRepository.CreateAsync(new Models.User
-                {
-                    Username = request.Username,
-                    ProfileName = request.ProfileName,
-                    UserPassword = _passwordHasher.Hash(request.UserPassword)
+                _dataBaseContext.Users.Add(new PoolGame.EFCore.Models.User {
+                Username = request.Username,
+                Password = _passwordHasher.Hash(request.UserPassword),
+                ProfileName=request.ProfileName ?? string.Empty
                 });
+                await _dataBaseContext.SaveChangesAsync();
                 return new RegisterResponse();
                 
             }
@@ -156,8 +160,7 @@ namespace PoolGame.Services.Implementations.User
             filter.Username = username;
 
 
-            await foreach (var user in _userRepository.RetrieveCollectionAsync(filter))
-            {
+            if (await _dataBaseContext.Users.AnyAsync(user => user.Username==username)) { 
 
                 return new Validation("Username already exist");
             }

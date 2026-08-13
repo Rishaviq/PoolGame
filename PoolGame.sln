@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolGame.Services", "PoolGa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolGame.WebAPI", "PoolGame.WebAPI\PoolGame.WebAPI.csproj", "{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolGame.EFCore", "PoolGame.EFCore\PoolGame.EFCore.csproj", "{40BAA9CC-2445-411B-8EEF-1FE22150EF6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA18CDD8-40EB-42C4-B69A-8724FCFA836A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40BAA9CC-2445-411B-8EEF-1FE22150EF6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40BAA9CC-2445-411B-8EEF-1FE22150EF6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40BAA9CC-2445-411B-8EEF-1FE22150EF6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40BAA9CC-2445-411B-8EEF-1FE22150EF6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
