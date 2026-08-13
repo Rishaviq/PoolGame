@@ -10,6 +10,6 @@ namespace PoolGame.Services.Hubs.Models
     {
         public string? ConnectionId { get; set; }
         public int? PlayerId { get; set; }
-        public required string GroupName { get; set; }
+        public string? ProfileName {  get; set; }
     }
 }
