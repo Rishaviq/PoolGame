@@ -13,7 +13,7 @@ namespace PoolGame.Services.DTOs.HubDTOs.Request
     {
         [Required]
         
-        public int UserId { get; set; }
+        public int PlayerId { get; set; }
 
         [Required]
         

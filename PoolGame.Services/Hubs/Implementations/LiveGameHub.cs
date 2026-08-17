@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.IdentityModel.Tokens;
 using Org.BouncyCastle.Tls;
+using PoolGame.Models;
 using PoolGame.Services.DTOs.HubDTOs.Request;
 using PoolGame.Services.Hubs.Models;
 using System;
@@ -19,15 +21,16 @@ namespace PoolGame.Services.Hubs.Implementations
         //private static readonly ConcurrentDictionary<string, List<int> > _gamesPerConnection = new();
         private static readonly ConcurrentDictionary<string, ConnectionGroupStats> _gamesByGameId = new();
 
+
         public async Task JoinGame(JoinGameRequest request)
 
         {
-            Console.WriteLine(Context.ConnectionId + request.UserId + " joined game");
             try
             {
+            Console.WriteLine(Context.ConnectionId + request.PlayerId + " joined game");
                 string groupName = request.GameId.ToString();
                 string previousConnection = "";
-                Task? updateGame=null;
+                Task? updateGame = null;
 
                 _gamesByGameId.TryAdd(groupName, new ConnectionGroupStats { GroupName = groupName });
                 if (_gamesByGameId.TryGetValue(groupName, out var game))
@@ -35,13 +38,13 @@ namespace PoolGame.Services.Hubs.Implementations
                     PlayerInfo? player;
                     lock (game.PlayerInfoLock)
                     {
-                        player = game.PlayersGameInfo.Find(x => x.PlayerId == request.UserId);
+                        player = game.PlayersGameInfo.Find(x => x.PlayerId == request.PlayerId);
                         if (player == null)
                         {
                             player = new PlayerInfo
                             {
                                 ConnectionId = Context.ConnectionId,
-                                PlayerId = request.UserId,
+                                PlayerId = request.PlayerId,
                                 ProfileName = request.ProfileName,
                                 ShotsAttempted = request.Stats.ShotsAttempted,
                                 ShotsMade = request.Stats.ShotsMade,
@@ -58,7 +61,7 @@ namespace PoolGame.Services.Hubs.Implementations
                             previousConnection = player.ConnectionId ?? "";
 
                             player.ConnectionId = Context.ConnectionId;
-                            player.PlayerId = request.UserId;
+                            player.PlayerId = request.PlayerId;
                             player.ProfileName = request.ProfileName;
                             player.ShotsMade = request.Stats.ShotsMade;
                             player.ShotsAttempted = request.Stats.ShotsAttempted;
@@ -76,7 +79,7 @@ namespace PoolGame.Services.Hubs.Implementations
                     await Groups.RemoveFromGroupAsync(previousConnection, groupName);
                     await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
                     await updateGame;
-                    await Clients.Caller.SendAsync("CreateGame", game);
+                    await Clients.Caller.SendAsync("CreateGame", game.PlayersGameInfo);
                 }
 
             }
@@ -88,38 +91,87 @@ namespace PoolGame.Services.Hubs.Implementations
 
         }
 
-        public async Task LeaveGame()
+        private async Task RemovePlayer(string connectionId)
         {
             try
             {
-                string connId = Context.ConnectionId;
+                Task? sendRemovePlayerRequest = null;
+                Task? removePlayerFromGroup = null;
+                string groupName = "";
 
-                if (_connectionPerClientId.TryRemove(Context.ConnectionId, out var connInfo))
+                foreach (var game in _gamesByGameId)
                 {
-                    _connectionPerId.TryRemove(connInfo.PlayerId ?? 0, out var value);
+                    lock (game.Value.PlayerInfoLock)
+                    {
+                        var possiblePlayersList = game.Value.PlayersGameInfo.Where(player => player.ConnectionId == connectionId).ToList();
+                        if (possiblePlayersList.IsNullOrEmpty()) continue;
 
-                    await Clients.OthersInGroup(connInfo.GroupName).SendAsync("RemovePlayer", connInfo.PlayerId);
+                        game.Value.PlayersGameInfo.RemoveAll(player => possiblePlayersList.Contains(player));
+                        groupName = game.Value.GroupName;
+
+                        sendRemovePlayerRequest = Clients.OthersInGroup(groupName).SendAsync("RemovePlayer", possiblePlayersList[0].PlayerId);
+                        removePlayerFromGroup = Groups.RemoveFromGroupAsync(connectionId, groupName);
 
 
-                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, connInfo.GroupName);
 
-                    Console.WriteLine(Context.ConnectionId.ToString() + " has left the group");
 
+                        break;
+                    }
                 }
 
+                if (_gamesByGameId.TryGetValue(groupName, out var currentgame))
+                {
+                    lock (currentgame.PlayerInfoLock)
+                    {
+                        if (currentgame.PlayersGameInfo.Count <= 0) { _gamesByGameId.TryRemove(groupName, out currentgame); }
+                    }
+                }
+
+                if (sendRemovePlayerRequest == null || removePlayerFromGroup == null) return;
+
+                await sendRemovePlayerRequest;
+                await removePlayerFromGroup;
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        public async Task LeaveGame()
+        {
+            await RemovePlayer(Context.ConnectionId);
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            Console.WriteLine(Context.ConnectionId);
+            await RemovePlayer(Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task UpdateLiveStats(LiveStatUpdateRequest request)
         {
             try
             {
-                await Clients.OthersInGroup(_connectionPerClientId[Context.ConnectionId].GroupName).SendAsync("UpdateUser", request);
+                lock (_gamesByGameId[request.GameId.ToString()].PlayerInfoLock)
+                {
+
+
+                    var playerStats = _gamesByGameId[request.GameId.ToString()].PlayersGameInfo.FirstOrDefault(player => player.PlayerId == request.PlayerId);
+                    if (playerStats == null) return;
+
+
+                    playerStats.ShotsAttempted = request.Stats.ShotsAttempted;
+                    playerStats.ShotsMade = request.Stats.ShotsMade;
+                    playerStats.BestStreak = request.Stats.BestStreak;
+                    playerStats.Fouls = request.Stats.Fouls;
+                    playerStats.HandBalls = request.Stats.HandBalls;
+                }
+
+
+                await Clients.OthersInGroup(request.GameId.ToString()).SendAsync("UpdateUser", request);
             }
             catch (Exception ex)
             {

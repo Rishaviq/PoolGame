@@ -10,7 +10,9 @@ namespace PoolGame.Services.DTOs.HubDTOs.Request
 {
     public class LiveStatUpdateRequest
     {
-        public int userId;
+        public int PlayerId { get; set; }
+        public int GameId { get; set; }
+        public string? ProfileName { get; set; }
 
        public LiveStats Stats { get; set; }
     }
