@@ -21,6 +21,8 @@ using PoolGameAPI.Controllers;
 using PoolGame.WebAPI.Middlewares;
 using PoolGame.Repositories;
 using PoolGame.WebAPI.Helpers;
+using Microsoft.EntityFrameworkCore;
+using PoolGame.EFCore.Data;
 
 namespace PoolGame.WebAPI
 {
@@ -41,7 +43,7 @@ namespace PoolGame.WebAPI
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IPlayerStatService, PlayerStatService>();
             builder.Services.AddScoped<IGameService, GameService>();
-           
+
 
 
             //adding helpers
@@ -49,8 +51,8 @@ namespace PoolGame.WebAPI
             builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 
 
-            if(builder.Environment.IsDevelopment())
-{
+            if (builder.Environment.IsDevelopment())
+            {
                 builder.Configuration.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
             }
 
@@ -71,7 +73,11 @@ namespace PoolGame.WebAPI
 
                 });
 
-            ConnectionFactory.Initialize(builder.Configuration["SQL:connection"]);
+            builder.Services.AddDbContext<PoolGameDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration["SQL:connection"]
+                )
+            );
 
             builder.Services.AddCors(options =>
             {
@@ -97,14 +103,14 @@ namespace PoolGame.WebAPI
 
             var app = builder.Build();
 
-            
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-               
+
             }
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
