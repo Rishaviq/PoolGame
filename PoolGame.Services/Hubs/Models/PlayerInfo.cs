@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace PoolGame.Services.Hubs.Models
 {
-    public class LiveStats
+    public class PlayerInfo
     {
 
-
+        public string? ConnectionId { get; set; }
+        public int? PlayerId { get; set; }
+        public string? ProfileName { get; set; }
 
         [Range(0, 15, ErrorMessage = "Player cant make more shots than available balls")]
         public int ShotsMade { get; set; }
