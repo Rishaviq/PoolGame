@@ -1,4 +1,6 @@
-﻿using PoolGame.Repositories.Interfaces.Game;
+﻿using Microsoft.EntityFrameworkCore;
+using PoolGame.EFCore.Data;
+using PoolGame.Repositories.Interfaces.Game;
 using PoolGame.Services.DTOs.Game;
 using PoolGame.Services.DTOs.Game.Request;
 using PoolGame.Services.DTOs.Game.Response;
@@ -13,46 +15,51 @@ namespace PoolGame.Services.Implementations.Game
 {
     public class GameService : IGameService
     {
-        private readonly IGameRepository _gameRepository;
-        public GameService(IGameRepository gameRepository)
+
+        private readonly PoolGameDbContext _dbContext;
+        public GameService(PoolGameDbContext dbContext)
         {
-            _gameRepository = gameRepository;
+            _dbContext = dbContext;
         }
         public async Task<CreateGameResponse> CreateGame()
         {
-            CreateGameResponse response = new CreateGameResponse();
-            response.GameId= await _gameRepository.CreateAsync(new Models.Game
-            {
-                GameDate = DateTime.Now,
-                GameIsDraw = true // Default value, can be changed later based on game logic
-            });
-            return response;
+            EFCore.Models.Game newGame = new EFCore.Models.Game { GameDate = DateTime.Now, GameIsDraw = true };
+            _dbContext.Games.Add(newGame);
+            await _dbContext.SaveChangesAsync();
+
+            return new CreateGameResponse { GameId = newGame.GameId };
         }
 
         public async Task<GetGamesListResponse> GetGameByDate(DateTime gameDate)
         {
             GetGamesListResponse response = new GetGamesListResponse();
-            GameFilter filter = new GameFilter
+
+            foreach (var game in await _dbContext.Games.Where(x => x.GameDate.Date == gameDate.Date).ToListAsync())
             {
-                GameDate = gameDate.Date
-            };
-            await foreach (var game in _gameRepository.RetrieveCollectionAsync(filter))
-            {
+
                 response.Games.Add(MapToGameDTO(game));
             }
+
             return response;
         }
 
         public async Task<GetGameResponse> GetGameById(int gameId)
         {
-            Models.Game game = await _gameRepository.RetrieveAsync(gameId);
-            return new GetGameResponse
+
+            EFCore.Models.Game? game = await _dbContext.Games.Where(x => x.GameId == gameId).FirstOrDefaultAsync();
+            if (game != null)
+                return new GetGameResponse
+                {
+                    Game = MapToGameDTO(game)
+
+                };
+
+            else
             {
-                Game = MapToGameDTO(game),
-                IsSuccesful = true
-            };
+                return new GetGameResponse { IsSuccesful = false, Message = "There is no game with this ID" };
+            }
         }
-        public GameDTO MapToGameDTO(Models.Game game)
+        public GameDTO MapToGameDTO(EFCore.Models.Game game)
         {
             return new GameDTO
             {

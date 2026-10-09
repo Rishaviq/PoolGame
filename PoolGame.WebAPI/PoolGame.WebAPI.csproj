@@ -10,11 +10,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.18" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.31">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PoolGame.EFCore\PoolGame.EFCore.csproj" />
     <ProjectReference Include="..\PoolGame.Models\PoolGame.Models.csproj" />
     <ProjectReference Include="..\PoolGame.Repositories\PoolGame.Repositories.csproj" />
     <ProjectReference Include="..\PoolGame.Services\PoolGame.Services.csproj" />
