@@ -1,4 +1,4 @@
-﻿using PoolGame.Models;
+﻿using PoolGame.EFCore.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

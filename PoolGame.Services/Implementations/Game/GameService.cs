@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PoolGame.EFCore.Data;
-using PoolGame.Repositories.Interfaces.Game;
 using PoolGame.Services.DTOs.Game;
 using PoolGame.Services.DTOs.Game.Request;
 using PoolGame.Services.DTOs.Game.Response;

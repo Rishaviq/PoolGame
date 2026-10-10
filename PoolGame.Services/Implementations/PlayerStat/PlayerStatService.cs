@@ -1,6 +1,6 @@
-﻿using PoolGame.Repositories.Interfaces.Game;
-using PoolGame.Repositories.Interfaces.PlayerStat;
-using PoolGame.Repositories.Interfaces.User;
+﻿using Microsoft.EntityFrameworkCore;
+using PoolGame.EFCore.Data;
+using PoolGame.EFCore.Models;
 using PoolGame.Services.DTOs;
 using PoolGame.Services.DTOs.Game;
 using PoolGame.Services.DTOs.Game.Response;
@@ -21,42 +21,36 @@ namespace PoolGame.Services.Implementations.PlayerStat
 {
     public class PlayerStatService : IPlayerStatService
     {
-        private readonly IPlayerStatRepository _playerStatRepository;
-        private readonly IGameRepository _gameRepository;
-        private readonly IUserRepository _userRepository;
-        public PlayerStatService(IPlayerStatRepository playerStatRepository, IGameRepository gameRepository, IUserRepository userRepository)
+        private readonly PoolGameDbContext _DbContext;
+        public PlayerStatService(PoolGameDbContext gameDbContext)
         {
-            _userRepository = userRepository;
-            _playerStatRepository = playerStatRepository;
-            _gameRepository = gameRepository;
+            _DbContext = gameDbContext;
         }
 
 
 
         public async Task<GetMatchHistoryResponse> GetMatchHistoryOfUser(int userId)
         {
-            //really have to fix this. I dont validate the database data at all.
 
-            PlayerStatFilter filter = new PlayerStatFilter
-            {
-                UserId = userId
-            };
             GetMatchHistoryResponse response = new GetMatchHistoryResponse();
 
 
-            await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(filter))
-            {
-                response.PlayerGames.Add(new PlayerGameDTO
+            response.PlayerGames = await (
+                from playerStat in _DbContext.PlayerStats
+                join game in _DbContext.Games
+                on playerStat.GameId equals game.GameId
+                where playerStat.UserId == userId
+                orderby game.GameDate descending
+                select new PlayerGameDTO
                 {
                     GameId = playerStat.GameId,
                     PlayerId = playerStat.UserId,
-                    GameDate = _gameRepository.RetrieveAsync(playerStat.GameId).Result.GameDate,
-                    GameIsDraw = _gameRepository.RetrieveAsync(playerStat.GameId).Result.GameIsDraw,
+                    GameDate = game.GameDate,
+                    GameIsDraw = game.GameIsDraw,
                     IsPlayerWinner = playerStat.IsWinner
-                });
-            }
+                }
+                ).ToListAsync();
 
-            response.PlayerGames = response.PlayerGames.OrderByDescending(x => x.GameDate).ToList();
             return response;
         }
 
@@ -65,24 +59,23 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
         public async Task<GetPersonalStatsResponse> GetPersonalStatsOfUser(int userId)
         {
-            List<Models.PlayerStat> playerStats = new List<Models.PlayerStat>();
-            await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter { UserId = userId }))
-            {
-                playerStats.Add(playerStat);
-            }
+
+
+            List<EFCore.Models.PlayerStat> playerStats = new List<EFCore.Models.PlayerStat>();
+            playerStats = await _DbContext.PlayerStats.Where(x => x.UserId == userId).ToListAsync();
             GetPersonalStatsResponse response = FillUniversalStats(new GetPersonalStatsResponse(), playerStats);
 
 
-            HashSet<int> DrawnGamesList = new HashSet<int>();//list of all the games that ended in draw
-            await foreach (var game in _gameRepository.RetrieveCollectionAsync(new GameFilter { GameIsDraw = true }))
-            {
-                DrawnGamesList.Add(game.GameId);
-            }
+            List<EFCore.Models.PlayerStat> finishedGamesList = await _DbContext.PlayerStats
+                .Where(x => x.UserId == userId && x.Game.GameIsDraw == false)
+                .ToListAsync();
 
-            playerStats = playerStats.Where(x => !DrawnGamesList.Contains(x.GameId)).ToList();
-            response = FillOutcomeDependantStats(response, playerStats);
-            var playerInfo = await _userRepository.RetrieveAsync(userId);
-            response.ProfileName = playerInfo.ProfileName;
+
+
+
+            response = FillOutcomeDependantStats(response, finishedGamesList);
+
+            response.ProfileName = await (from User in _DbContext.Users where User.UserId == userId select User.Username).FirstOrDefaultAsync();
             return response;
         }
 
@@ -94,30 +87,49 @@ namespace PoolGame.Services.Implementations.PlayerStat
         {
             GetPlayerGameStatsResponse response = new GetPlayerGameStatsResponse();
 
-            var game = await _gameRepository.RetrieveAsync(gameId);
+            var gameInfo = await _DbContext.Games.Where(x => x.GameId == gameId).SingleOrDefaultAsync();
+            if (gameInfo is null)
+            {
+                return new GetPlayerGameStatsResponse
+                {
+                    IsSuccesful = false,
+                    Message = "No such game exists"
+                };
+            }
+
+
+            var playerStats = await _DbContext.PlayerStats.Where(x => x.Game.GameId == gameId).ToListAsync();
+            if (playerStats.Count <= 0)
+            {
+                return new GetPlayerGameStatsResponse
+                {
+                    IsSuccesful = false,
+                    Message = "No player stats found for this game."
+                };
+            }
+
 
             response.GameInfo = new GameDTO
             {
-                GameId = game.GameId,
-                GameDate = game.GameDate,
-                GameIsDraw = game.GameIsDraw
+                GameId = gameInfo.GameId,
+                GameDate = gameInfo.GameDate,
+                GameIsDraw = gameInfo.GameIsDraw
             };
 
-            await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter { GameId = gameId }))
+            foreach (var statBlock in playerStats)
             {
-                //Add a check to see if the player have only one set of stats for the game even if the database should not allow that to happen
-                var user = await _userRepository.RetrieveAsync(playerStat.UserId);
+
 
                 response.PlayerStats.Add(new PlayerStatDTO
                 {
-                    UserId = playerStat.UserId,
-                    ShotsMade = playerStat.ShotsMade,
-                    ShotsAttempted = playerStat.ShotsAttempted,
-                    HandBalls = playerStat.HandBalls,
-                    Fouls = playerStat.Fouls,
-                    BestStreak = playerStat.BestStreak,
-                    IsWinner = playerStat.IsWinner,
-                    UserName = user.Username
+                    UserId = statBlock.UserId,
+                    ShotsMade = statBlock.ShotsMade ?? 0,
+                    ShotsAttempted = statBlock.ShotsAttempted ?? 0,
+                    HandBalls = statBlock.HandBalls ?? 0,
+                    Fouls = statBlock.Fouls ?? 0,
+                    BestStreak = statBlock.BestStreak ?? 0,
+                    IsWinner = statBlock.IsWinner,
+                    UserName = statBlock.User.Username
                 });
             }
             if (response.PlayerStats.Count < 1)
@@ -139,7 +151,10 @@ namespace PoolGame.Services.Implementations.PlayerStat
             {
                 return new SaveStatsResponse { IsSuccesful = validationResult.IsSuccesful, Message = validationResult.Message };
             }
-            await _playerStatRepository.CreateAsync(new Models.PlayerStat
+
+
+
+            _DbContext.PlayerStats.Add((new EFCore.Models.PlayerStat
             {
                 GameId = request.GameId,
                 UserId = request.UserId,
@@ -149,18 +164,23 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 Fouls = request.Fouls,
                 BestStreak = request.BestStreak,
                 IsWinner = request.IsWinner
-            });
+            }));
+
             if (request.IsWinner)
             {
-                await _gameRepository.UpdateAsync(request.GameId, new GameUpdate { GameIsDraw = false });
+
+                EFCore.Models.Game? game = await _DbContext.Games.FindAsync(request.GameId);
+                game.GameIsDraw = false;
+
             }
+            await _DbContext.SaveChangesAsync();
 
             return new SaveStatsResponse();//temp response until the method is implemented
         }
 
 
 
-        public GetPersonalStatsResponse FillUniversalStats(GetPersonalStatsResponse response, List<Models.PlayerStat> playerStats)
+        public GetPersonalStatsResponse FillUniversalStats(GetPersonalStatsResponse response, List<EFCore.Models.PlayerStat> playerStats)
         {
             // fills the stats that are not dependant of if the game ended. Like Shot accuracy can be filled and be accurate even if the game is not finished.
             //should pass a list with all the game stats that can be found for the user
@@ -168,11 +188,11 @@ namespace PoolGame.Services.Implementations.PlayerStat
             foreach (var stat in playerStats)
             {
                 statCounter.TotalGamesPlayed++;
-                statCounter.TotalShotsMade += stat.ShotsMade;
-                statCounter.TotalShotsAttempted += stat.ShotsAttempted;
+                statCounter.TotalShotsMade += stat.ShotsMade ?? 0;
+                statCounter.TotalShotsAttempted += stat.ShotsAttempted ?? 0;
                 if (statCounter.BestStreak < stat.BestStreak)
                 {
-                    statCounter.BestStreak = stat.BestStreak;
+                    statCounter.BestStreak = stat.BestStreak ?? 0;
                 }
             }
             if (statCounter.TotalGamesPlayed <= 0) { throw new UserValidationException("Player Has no games Played"); }
@@ -206,7 +226,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
 
 
-        public GetPersonalStatsResponse FillOutcomeDependantStats(GetPersonalStatsResponse response, List<Models.PlayerStat> playerStats)
+        public GetPersonalStatsResponse FillOutcomeDependantStats(GetPersonalStatsResponse response, List<EFCore.Models.PlayerStat> playerStats)
         {
             //for stats that can be accurate only if the game finished, like fouls and handballs
             //should pass a list without the games that ended in draw for the user. Than means only game that finished would be used to fill the stats
@@ -224,8 +244,8 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 }
                 else { throw new Exception("Unfiltered data in player stats"); }
 
-                statCounter.TotalHandBalls += stat.HandBalls;
-                statCounter.TotalFouls += stat.Fouls;
+                statCounter.TotalHandBalls += stat.HandBalls ?? 0;
+                statCounter.TotalFouls += stat.Fouls ?? 0;
                 statCounter.TotalGamesPlayed++;
             }
 
@@ -267,66 +287,108 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 return new ResponseDTO("Player can't make more shots than attempted");
             }
 
-            Models.Game game = await _gameRepository.RetrieveAsync(request.GameId);
+            EFCore.Models.Game? game = await _DbContext.Games.FindAsync(request.GameId);
             if (game is null)
             {
                 return new ResponseDTO("Game does not exist");
             }
-            Models.User user = await _userRepository.RetrieveAsync(request.UserId);
+            EFCore.Models.User? user = await _DbContext.Users.FindAsync(request.UserId);
             if (user is null)
             {
                 return new ResponseDTO("User does not exist");
             }
-            await foreach (var stat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter { GameId = request.GameId }))
+
+            var playerAlreadyHasStats = await _DbContext.PlayerStats.AnyAsync(x => x.GameId == request.GameId && x.UserId == request.UserId);
+            if (playerAlreadyHasStats)
             {
-                if (stat.UserId == request.UserId)
-                {
-                    return new ResponseDTO("Player stats for this game already exist");
-                }
+                return new ResponseDTO("Player stats for this game already exist");
             }
 
 
             return new ResponseDTO();
         }
 
+        //public async Task<GetLeaderboardResponse> GetLeaderBoard()
+        //{
+        //    HashSet<int> drawGamesId = new HashSet<int>();
+        //    await foreach (var game in _gameRepository.RetrieveCollectionAsync(new GameFilter { GameIsDraw = true }))
+        //    {
+        //        drawGamesId.Add(game.GameId);
+        //    }
+
+        //    Dictionary<int, LeaderBoardEntryDTO> stats = new Dictionary<int, LeaderBoardEntryDTO>();
+        //    await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter()))
+        //    {
+        //        stats.TryAdd(playerStat.UserId, new LeaderBoardEntryDTO());
+        //        stats[playerStat.UserId].TotalGames++;
+
+        //        if (!drawGamesId.Contains(playerStat.GameId))
+        //        {
+        //            //checking if the game is draw and saving the result
+        //            if (playerStat.IsWinner)
+        //            {
+        //                stats[playerStat.UserId].GamesWon++;
+        //            }
+        //            else { stats[playerStat.UserId].GamesLost++; }
+        //        }
+
+        //    }
+        //    GetLeaderboardResponse response = new GetLeaderboardResponse();
+        //    foreach (var stat in stats)
+        //    {
+        //        if (stat.Value.GamesWon + stat.Value.GamesLost > 0)
+        //        {
+        //            stat.Value.UserId = stat.Key;
+        //            stat.Value.WinRate = (decimal)stat.Value.GamesWon / (stat.Value.GamesWon + stat.Value.GamesLost) * 100;
+        //            stat.Value.UserName = _userRepository.RetrieveAsync(stat.Value.UserId).Result.ProfileName; //username/prodile name mixup becouse i dont want to change it everywhere
+        //            response.LeaderboardEntries.Add(stat.Value);
+        //        }
+        //    }
+        //    response.LeaderboardEntries = response.LeaderboardEntries.OrderByDescending(entry => entry.WinRate).ThenByDescending(entry => entry.TotalGames).ToList();
+        //    return response;
+        //}
+
         public async Task<GetLeaderboardResponse> GetLeaderBoard()
-        {
-            HashSet<int> drawGamesId = new HashSet<int>();
-            await foreach (var game in _gameRepository.RetrieveCollectionAsync(new GameFilter { GameIsDraw = true }))
-            {
-                drawGamesId.Add(game.GameId);
-            }
-
-            Dictionary<int, LeaderBoardEntryDTO> stats = new Dictionary<int, LeaderBoardEntryDTO>();
-            await foreach (var playerStat in _playerStatRepository.RetrieveCollectionAsync(new PlayerStatFilter()))
-            {
-                stats.TryAdd(playerStat.UserId, new LeaderBoardEntryDTO());
-                stats[playerStat.UserId].TotalGames++;
-
-                if (!drawGamesId.Contains(playerStat.GameId))
+        {//done by claude TODO: rewrite it myself
+            
+            var grouped = await (
+                from ps in _DbContext.PlayerStats
+                join g in _DbContext.Games on ps.GameId equals g.GameId
+                group new { ps.IsWinner, g.GameIsDraw } by ps.UserId into grp
+                select new
                 {
-                    //checking if the game is draw and saving the result
-                    if (playerStat.IsWinner)
-                    {
-                        stats[playerStat.UserId].GamesWon++;
-                    }
-                    else { stats[playerStat.UserId].GamesLost++; }
-                }
+                    UserId = grp.Key,
+                    TotalGames = grp.Count(),
+                    GamesWon = grp.Count(x => x.IsWinner && !x.GameIsDraw),
+                    GamesLost = grp.Count(x => !x.IsWinner && !x.GameIsDraw)
+                })
+                .Where(x => x.GamesWon + x.GamesLost > 0)
+                .AsNoTracking()
+                .ToListAsync();
 
-            }
-            GetLeaderboardResponse response = new GetLeaderboardResponse();
-            foreach (var stat in stats)
-            {
-                if (stat.Value.GamesWon + stat.Value.GamesLost > 0)
+           
+            var userIds = grouped.Select(x => x.UserId).ToList();
+            var userNames = await _DbContext.Users
+                .Where(u => userIds.Contains(u.UserId))
+                .AsNoTracking()
+                .ToDictionaryAsync(u => u.UserId, u => u.ProfileName);
+
+            var entries = grouped
+                .Select(x => new LeaderBoardEntryDTO
                 {
-                    stat.Value.UserId = stat.Key;
-                    stat.Value.WinRate = (decimal)stat.Value.GamesWon / (stat.Value.GamesWon + stat.Value.GamesLost) * 100;
-                    stat.Value.UserName = _userRepository.RetrieveAsync(stat.Value.UserId).Result.ProfileName; //username/prodile name mixup becouse i dont want to change it everywhere
-                    response.LeaderboardEntries.Add(stat.Value);
-                }
-            }
-            response.LeaderboardEntries = response.LeaderboardEntries.OrderByDescending(entry => entry.WinRate).ThenByDescending(entry => entry.TotalGames).ToList();
-            return response;
+                    UserId = x.UserId,
+                    UserName = userNames.GetValueOrDefault(x.UserId),
+                    TotalGames = x.TotalGames,
+                    GamesWon = x.GamesWon,
+                    GamesLost = x.GamesLost,
+                    WinRate = (decimal)x.GamesWon / (x.GamesWon + x.GamesLost) * 100
+                })
+                .OrderByDescending(e => e.WinRate)
+                .ThenByDescending(e => e.TotalGames)
+                .ToList();
+
+            return new GetLeaderboardResponse { LeaderboardEntries = entries };
         }
+
     }
 }

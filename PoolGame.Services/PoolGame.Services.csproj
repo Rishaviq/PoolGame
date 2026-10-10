@@ -14,8 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PoolGame.EFCore\PoolGame.EFCore.csproj" />
-    <ProjectReference Include="..\PoolGame.Models\PoolGame.Models.csproj" />
-    <ProjectReference Include="..\PoolGame.Repositories\PoolGame.Repositories.csproj" />
   </ItemGroup>
 
   <ItemGroup>

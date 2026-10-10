@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Org.BouncyCastle.Tls;
-using PoolGame.Models;
 using PoolGame.Services.DTOs.HubDTOs.Request;
 using PoolGame.Services.Hubs.Models;
 using System;

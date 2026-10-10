@@ -1,5 +1,5 @@
-﻿using PoolGame.Models;
-using PoolGame.Repositories.Interfaces.User;
+﻿using Microsoft.EntityFrameworkCore;
+using PoolGame.EFCore.Data;
 using PoolGame.Services.DTOs.User;
 using PoolGame.Services.DTOs.User.Requests;
 using PoolGame.Services.DTOs.User.Response;
@@ -19,19 +19,24 @@ namespace PoolGame.Services.Implementations.User
     public class UserService : IUserService
     {
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IUserRepository _userRepository;
         private readonly ITokenProvider _tokenProvider;
-        public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ITokenProvider tokenProvider)
+        private readonly PoolGameDbContext _dbContext;
+        public UserService(PoolGameDbContext dbContext, IPasswordHasher passwordHasher, ITokenProvider tokenProvider)
         {
             _tokenProvider = tokenProvider;
             _passwordHasher = passwordHasher;
-            _userRepository = userRepository;
+            _dbContext = dbContext;
         }
         public async Task<GetUserResponse> GetUser(int userId)
         {
             try
             {
-                Models.User user = await _userRepository.RetrieveAsync(userId);
+                EFCore.Models.User? user = await _dbContext.Users.FindAsync(userId);
+
+
+                if (user == null) return new GetUserResponse { Message = "This user doesnt exist", IsSuccesful = false };
+
+
                 return new GetUserResponse
                 {
                     User =
@@ -60,7 +65,7 @@ namespace PoolGame.Services.Implementations.User
             {
 
 
-                Models.User user = await FindUserByName(loginRequest.Username);
+                EFCore.Models.User? user = await _dbContext.Users.Where(x => x.Username == loginRequest.Username).FirstOrDefaultAsync();
                 if (_passwordHasher.Verify(loginRequest.Password, user.UserPassword))
                 {
                     return new LoginResponse
@@ -110,7 +115,7 @@ namespace PoolGame.Services.Implementations.User
                     UserPassword = _passwordHasher.Hash(request.UserPassword)
                 });
                 return new RegisterResponse();
-                
+
             }
             else
             {
@@ -161,7 +166,7 @@ namespace PoolGame.Services.Implementations.User
 
                 return new Validation("Username already exist");
             }
-            Validation lenghtValidation = GenetalStringValidation(username);
+            Validation lenghtValidation = GeneralStringValidation(username);
             if (!lenghtValidation.IsValid)
             {
 
@@ -172,7 +177,7 @@ namespace PoolGame.Services.Implementations.User
 
             return new Validation();
         }
-        public Validation GenetalStringValidation(string input)
+        public Validation GeneralStringValidation(string input)
         {
             if (input.Length < 3 || input.Length > 50)
             {
@@ -189,12 +194,12 @@ namespace PoolGame.Services.Implementations.User
             {
                 return response;
             }
-            response = GenetalStringValidation(request.UserPassword);
+            response = GeneralStringValidation(request.UserPassword);
             if (!response.IsValid) { return response; }
 
             if (request.ProfileName is not null)
             {
-                response = GenetalStringValidation(request.ProfileName);
+                response = GeneralStringValidation(request.ProfileName);
                 if (!response.IsValid) { return response; }
             }
 

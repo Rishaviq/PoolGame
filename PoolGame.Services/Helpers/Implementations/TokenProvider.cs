@@ -2,9 +2,9 @@
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Text;
 using System.Security.Claims;
-using PoolGame.Models;
 using Microsoft.Extensions.Configuration;
 using PoolGame.Services.Helpers.Interfaces;
+using PoolGame.EFCore.Models;
 
 namespace PoolGameAPI.Controllers
 {
