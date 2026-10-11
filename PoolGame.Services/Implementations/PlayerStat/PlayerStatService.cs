@@ -98,7 +98,17 @@ namespace PoolGame.Services.Implementations.PlayerStat
             }
 
 
-            var playerStats = await _DbContext.PlayerStats.Where(x => x.Game.GameId == gameId).ToListAsync();
+            var playerStats = await _DbContext.PlayerStats.Where(x => x.Game.GameId == gameId).Join(
+        _DbContext.Users,
+        ps => ps.UserId,
+        u => u.UserId,
+        (ps, u) => new
+        {
+            PlayerStats = ps,
+            User = u
+        }).ToListAsync();
+
+
             if (playerStats.Count <= 0)
             {
                 return new GetPlayerGameStatsResponse
@@ -122,13 +132,13 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
                 response.PlayerStats.Add(new PlayerStatDTO
                 {
-                    UserId = statBlock.UserId,
-                    ShotsMade = statBlock.ShotsMade ?? 0,
-                    ShotsAttempted = statBlock.ShotsAttempted ?? 0,
-                    HandBalls = statBlock.HandBalls ?? 0,
-                    Fouls = statBlock.Fouls ?? 0,
-                    BestStreak = statBlock.BestStreak ?? 0,
-                    IsWinner = statBlock.IsWinner,
+                    UserId = statBlock.PlayerStats.UserId,
+                    ShotsMade = statBlock.PlayerStats.ShotsMade ?? 0,
+                    ShotsAttempted = statBlock.PlayerStats.ShotsAttempted ?? 0,
+                    HandBalls = statBlock.PlayerStats.HandBalls ?? 0,
+                    Fouls = statBlock.PlayerStats.Fouls ?? 0,
+                    BestStreak = statBlock.PlayerStats.BestStreak ?? 0,
+                    IsWinner = statBlock.PlayerStats.IsWinner,
                     UserName = statBlock.User.Username
                 });
             }
@@ -350,7 +360,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
 
         public async Task<GetLeaderboardResponse> GetLeaderBoard()
         {//done by claude TODO: rewrite it myself
-            
+
             var grouped = await (
                 from ps in _DbContext.PlayerStats
                 join g in _DbContext.Games on ps.GameId equals g.GameId
@@ -366,7 +376,7 @@ namespace PoolGame.Services.Implementations.PlayerStat
                 .AsNoTracking()
                 .ToListAsync();
 
-           
+
             var userIds = grouped.Select(x => x.UserId).ToList();
             var userNames = await _DbContext.Users
                 .Where(u => userIds.Contains(u.UserId))

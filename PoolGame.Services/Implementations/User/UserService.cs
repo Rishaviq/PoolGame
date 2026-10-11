@@ -65,7 +65,8 @@ namespace PoolGame.Services.Implementations.User
             {
 
 
-                EFCore.Models.User? user = await _dbContext.Users.Where(x => x.Username == loginRequest.Username).FirstOrDefaultAsync();
+                var user = await _dbContext.Users.Where(x => x.Username == loginRequest.Username).SingleOrDefaultAsync();
+                
                 if (_passwordHasher.Verify(loginRequest.Password, user.UserPassword))
                 {
                     return new LoginResponse
@@ -108,12 +109,13 @@ namespace PoolGame.Services.Implementations.User
             Validation validations = await RegisterValidaton(request);
             if (validations.IsValid)
             {
-                await _userRepository.CreateAsync(new Models.User
+                 _dbContext.Users.Add(new EFCore.Models.User
                 {
                     Username = request.Username,
                     ProfileName = request.ProfileName,
                     UserPassword = _passwordHasher.Hash(request.UserPassword)
                 });
+                await _dbContext.SaveChangesAsync();
                 return new RegisterResponse();
 
             }
@@ -129,43 +131,24 @@ namespace PoolGame.Services.Implementations.User
 
 
 
-        public async Task<Models.User> FindUserByName(string Username)
+        public async Task<EFCore.Models.User> FindUserByName(string Username)
         {
-            UserFilter filter = new UserFilter();
-            filter.Username = Username;
-            int recordCount = 0;
-            Models.User? response = null;
-            await foreach (var user in _userRepository.RetrieveCollectionAsync(filter))
-            {
-                recordCount++;
-                response = user;
-            }
-            if (recordCount == 0)
-            {
-                throw new UserValidationException("User not found");
-            }
-            else if (recordCount > 1)
-            {
-                throw new UserValidationException($"Multiple users found with the same username - {Username}");
-            }
-            if (response == null)
-            {
-                throw new UserValidationException("Server error - user is somehow null");
+            var response = await _dbContext.Users.Where(x => x.Username == Username).SingleOrDefaultAsync();
+            if (response == null) {
+                throw new UserValidationException("No such user exists");
             }
             return response;
         }
 
         public async Task<Validation> ValidateUsername(string username)
         {
-            UserFilter filter = new UserFilter();
-            filter.Username = username;
+
+            var user = await _dbContext.Users.Where(x => x.Username == username).FirstOrDefaultAsync();
+
+            if(user is not null) return new Validation("Username already exist");
+            
 
 
-            await foreach (var user in _userRepository.RetrieveCollectionAsync(filter))
-            {
-
-                return new Validation("Username already exist");
-            }
             Validation lenghtValidation = GeneralStringValidation(username);
             if (!lenghtValidation.IsValid)
             {
