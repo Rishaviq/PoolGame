@@ -3,6 +3,10 @@
 
 This project is the beginning of a full web application designed to help me and my friends track our pool games. Have you ever wondered whether you’ve won more games than a friend? This app aims to solve that problem by storing and retrieving game statistics in a database. Currently, this repository contains only the backend, while a separate project will handle the frontend visualization.
 
+## Demo
+
+You can try the site using the Docker Compose demo in `WholeAppDemo.yaml`. From the `PoolGame` folder, run `docker compose -f WholeAppDemo.yaml up -d`, then visit [https://localhost:8443](https://localhost:8443). The home page has a small bug when a game has no saved stats. To work around it, create a game on the site and save stats for it. Since this is only a demo and there is no actual game being played, this does not affect the demo in any meaningful way. When you are done, run `docker compose -f WholeAppDemo.yaml down -v` to stop the demo and remove its database.
+
 
 
 
