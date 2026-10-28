@@ -5,7 +5,7 @@ This project is the beginning of a full web application designed to help me and 
 
 ## Demo
 
-You can try the site using the Docker Compose demo in `WholeAppDemo.yaml`. From the `PoolGame` folder, run `docker compose -f WholeAppDemo.yaml up -d`, then visit [https://localhost:8443](https://localhost:8443). The home page has a small bug when a game has no saved stats. To work around it, create a game on the site and save stats for it. Since this is only a demo and there is no actual game being played, this does not affect the demo in any meaningful way. When you are done, run `docker compose -f WholeAppDemo.yaml down -v` to stop the demo and remove its database.
+You can try the site using the Docker Compose demo in `WholeAppDemo.yaml`. From the repo folder, run `docker compose -f WholeAppDemo.yaml up -d`, then visit [https://localhost:8443](https://localhost:8443). The home page has a small bug when a game has no saved stats. To work around it, create a game on the site and save stats for it. Since this is only a demo and there is no actual game being played, this does not affect the demo in any meaningful way. When you are done, run `docker compose -f WholeAppDemo.yaml down -v` to stop the demo and remove its database.
 
 
 
