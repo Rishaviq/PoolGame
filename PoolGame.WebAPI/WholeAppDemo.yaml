@@ -1,0 +1,109 @@
+#
+#  One-click demo: DB + migrations + API + frontend.
+#
+#  Run:     docker compose -f WholeAppDemo.yaml up -d
+#  Open:    http://localhost:8080   (everything goes through this one port)
+#  Update:  re-run the same command - images are re-pulled every time (pull_policy: always)
+#  Reset:   docker compose -f WholeAppDemo.yaml down -v   (wipes the demo database)
+#
+#  All values are hard coded on purpose. This file is for demo purposes only, never for real use.
+#
+
+name: poolgame-demo
+
+x-sql-connection: &sql-connection "Server=db,1433;Database=Demo-DB;User Id=sa;Password=DemoOnly_1234!;TrustServerCertificate=True;"
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: "DemoOnly_1234!"
+    ports:
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - demo-db-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  # Runs once on every `up`, applies pending migrations, then exits. No profile needed any more.
+  migrations:
+    image: rishaviq/poolgame-migrations:latest
+    pull_policy: always
+    restart: "no"
+    environment:
+      SQL__CONNECTION: *sql-connection
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    image: rishaviq/poolgame-api:latest
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      # Double underscore = how .NET maps env vars to config sections (JWT:Secret etc.).
+      # Single underscore (what this file used before) is NOT picked up by the config binder.
+      JWT__EXPIRATIONINMINUTES: "1400"
+      JWT__AUDIENCE: "audience"
+      JWT__ISSUER: "issuer"
+      JWT__SECRET: "demo-only-jwt-secret-key-at-least-32-characters-long"
+      SQL__CONNECTION: *sql-connection
+    ports:
+      - "127.0.0.1:5002:8080"   # optional, only for poking the API directly (swagger, curl)
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  # Self-contained frontend:
+  #  1. The published FE image has the PROD api url baked into its JS (Vite build-arg).
+  #     On start we swap it for the relative path /api/v2.
+  #  2. nginx (config below) forwards /api/ to the api container over the compose network.
+  # So the browser only ever talks to this one container: no external urls, no CORS.
+  web:
+    image: rishaviq/react-app:latest
+    pull_policy: always
+    restart: unless-stopped
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        grep -rl "https://poolgameapi.com/api/v2" /usr/share/nginx/html
+        | xargs -r sed -i "s|https://poolgameapi.com/api/v2|/api/v2|g"
+        && exec nginx -g "daemon off;"
+    configs:
+      - source: web-nginx
+        target: /etc/nginx/conf.d/default.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  demo-db-data:
+
+# Needs Docker Compose >= 2.23.1 (inline config content). "$$" is how compose escapes a literal "$".
+configs:
+  web-nginx:
+    content: |
+      server {
+        listen 80;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        location /api/ {
+          proxy_pass http://api:8080;
+          proxy_set_header Host $$host;
+          proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $$scheme;
+        }
+
+        location / {
+          try_files $$uri /index.html;
+        }
+      }

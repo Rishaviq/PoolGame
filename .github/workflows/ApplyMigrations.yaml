@@ -1,0 +1,46 @@
+name: Production Database Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit SHA of the migration image to apply (leave empty = the commit this run was started from)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Never run two migrations at the same time
+concurrency:
+  group: production-migrations
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: rishaviq/poolgame-migrations
+
+jobs:
+  migrate-production:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve image tag
+        id: tag
+        env:
+          TAG: ${{ inputs.sha || github.sha }}
+        run: echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Run migrations on production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
+          script: |
+            docker pull ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+
+        
+            docker run --rm \
+              -e SQL__CONNECTION='${{ secrets.SQL_CONNECTION }}' \
+              ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}

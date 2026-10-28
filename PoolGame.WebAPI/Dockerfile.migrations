@@ -1,0 +1,32 @@
+# Goes at PoolGame.WebAPI/Dockerfile.migrations (the path CI builds from, context = repo root).
+# Applies all pending EF Core migrations when the container starts, then exits.
+#
+# ASSUMPTIONS - adjust if wrong:
+#  - the DbContext and the Migrations folder are in PoolGame.WebAPI
+#  - .NET 8, linux-x64 runner
+
+# ---- Stage 1: build a self-contained migration bundle ----
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN dotnet tool install --global dotnet-ef --version 8.*
+
+COPY . .
+RUN dotnet restore PoolGame.WebAPI/PoolGame.WebAPI.csproj
+
+# If your DbContext lives in another project, add: --startup-project PoolGame.WebAPI/PoolGame.WebAPI.csproj
+# and point --project at the data project.
+RUN dotnet ef migrations bundle \
+      --project PoolGame.WebAPI/PoolGame.WebAPI.csproj \
+      --self-contained -r linux-x64 \
+      --output /out/efbundle \
+      --force
+
+# ---- Stage 2: tiny runtime image that just runs the bundle ----
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0
+WORKDIR /app
+COPY --from=build /out/efbundle .
+
+# Reads the connection string from SQL__CONNECTION, same env var the API uses.
+ENTRYPOINT ["/bin/sh", "-c", "exec ./efbundle --connection \"$SQL__CONNECTION\""]
